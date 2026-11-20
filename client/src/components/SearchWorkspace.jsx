@@ -57,7 +57,7 @@ export default function SearchWorkspace() {
   };
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/search/config`)
+    fetch(`${API_BASE}/api/search/config`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => setConfig(data))
       .catch(() => setConfig({
@@ -83,7 +83,7 @@ export default function SearchWorkspace() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/config`)
+    fetch(`${API_BASE}/api/config`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         if (data.googleApiKeyConfigured) {
@@ -123,7 +123,7 @@ export default function SearchWorkspace() {
     if (pollRef.current) clearInterval(pollRef.current);
     if (eventSourceRef.current) eventSourceRef.current.close();
 
-    const es = new EventSource(`${API_BASE}/api/search/progress/${id}`);
+    const es = new EventSource(`${API_BASE}/api/search/progress/${id}`, { withCredentials: true });
     eventSourceRef.current = es;
 
     es.onmessage = (event) => {
@@ -149,7 +149,7 @@ export default function SearchWorkspace() {
       eventSourceRef.current = null;
       pollRef.current = setInterval(async () => {
         try {
-          const response = await fetch(`${API_BASE}/api/search/${id}`);
+          const response = await fetch(`${API_BASE}/api/search/${id}`, { credentials: 'include' });
           const task = await response.json();
           setTaskStatus(task);
           if (task.contacts && task.contacts.length > 0) {
@@ -181,7 +181,7 @@ export default function SearchWorkspace() {
     try {
       const response = await fetch(`${API_BASE}/api/search/start`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application\/json' },
         body: JSON.stringify({
           keywords,
           searchEngine: form.searchEngine,
@@ -214,19 +214,19 @@ export default function SearchWorkspace() {
 
   const stopSearch = async () => {
     if (!taskId) return;
-    await fetch(`${API_BASE}/api/search/${taskId}/stop`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/search/${taskId}/stop`, { credentials: 'include', method: 'POST' });
     addLog('Stop requested.');
   };
 
   const pauseSearch = async () => {
     if (!taskId) return;
-    await fetch(`${API_BASE}/api/search/${taskId}/pause`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/search/${taskId}/pause`, { credentials: 'include', method: 'POST' });
     addLog('Pause requested.');
   };
 
   const resumeSearch = async () => {
     if (!taskId) return;
-    await fetch(`${API_BASE}/api/search/${taskId}/resume`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/search/${taskId}/resume`, { credentials: 'include', method: 'POST' });
     addLog('Resume requested.');
   };
 
@@ -237,7 +237,7 @@ export default function SearchWorkspace() {
     try {
       const response = await fetch(`${API_BASE}/api/search/start`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application\/json' },
         body: JSON.stringify({
           keywords: [keywords[0]],
           searchEngine: form.searchEngine,
@@ -277,7 +277,7 @@ export default function SearchWorkspace() {
     try {
       const response = await fetch(`${API_BASE}/api/search/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application\/json' },
         body: JSON.stringify({ emails })
       });
       const data = await response.json();
@@ -303,7 +303,7 @@ export default function SearchWorkspace() {
     try {
       const response = await fetch(`${API_BASE}/api/search/save`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application\/json' },
         body: JSON.stringify({
           taskId,
           keywords: form.keywords,
@@ -327,7 +327,7 @@ export default function SearchWorkspace() {
 
   const loadSessions = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/search/sessions`);
+      const response = await fetch(`${API_BASE}/api/search/sessions`, { credentials: 'include' });
       const data = await response.json();
       setSessions(data);
     } catch (error) {
@@ -337,7 +337,7 @@ export default function SearchWorkspace() {
 
   const loadSession = async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/api/search/sessions/${id}`);
+      const response = await fetch(`${API_BASE}/api/search/sessions/${id}`, { credentials: 'include' });
       const session = await response.json();
       setContacts(session.items || []);
       setSelectedEmails(new Set());
@@ -352,7 +352,7 @@ export default function SearchWorkspace() {
   const deleteSession = async (id) => {
     if (!confirm('Delete this session?')) return;
     try {
-      await fetch(`${API_BASE}/api/search/sessions/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/search/sessions/${id}`, { credentials: 'include', method: 'DELETE' });
       addLog('Session deleted.');
       loadSessions();
     } catch (error) {
@@ -387,7 +387,7 @@ export default function SearchWorkspace() {
     try {
       const response = await fetch(`${API_BASE}/api/search/remove-duplicates`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application\/json' },
         body: JSON.stringify({ contacts })
       });
       const data = await response.json();
@@ -946,3 +946,4 @@ export default function SearchWorkspace() {
     </div>
   );
 }
+
