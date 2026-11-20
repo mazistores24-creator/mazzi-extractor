@@ -4,14 +4,24 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import Extraction from './models/Extraction.js';
 import { extractContacts } from './lib/extractContacts.js';
+import searchRoutes from './routes/search.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
 const memoryHistory = [];
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
 app.use(express.json({ limit: '10mb' }));
+app.use('/api/search', searchRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, database: mongoose.connection.readyState === 1 ? 'connected' : 'memory mode' }));
+
+app.get('/api/config', (_req, res) => {
+  res.json({
+    googleApiKeyConfigured: Boolean(process.env.GOOGLE_API_KEY || process.env.SERPER_API_KEY || process.env.SERPAPI_API_KEY),
+    mongodbConfigured: Boolean(process.env.MONGODB_URI),
+    version: '1.0.0'
+  });
+});
 
 app.get('/api/extractions', async (_req, res) => {
   try {

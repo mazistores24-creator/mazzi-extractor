@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import SearchWorkspace from './components/SearchWorkspace';
 
 const emptyFilters = { country: 'Any country', language: 'Any language', emailType: 'Any type', provider: 'Any provider', keywords: '', maxResults: 500 };
 const demoText = `Acme Studio | hello@acmestudio.example | +1 555 010 2200 | https://acmestudio.example\nNorthwind Labs | partnerships@northwind.example | +44 20 7946 0958 | https://northwind.example`;
@@ -15,7 +16,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
-  const [activeView, setActiveView] = useState('extractor');
+  const [activeView, setActiveView] = useState('live-search');
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef(null);
 
@@ -85,13 +86,28 @@ function App() {
     <main className="main-area">
       <header className="topbar"><div className="breadcrumb">Workspace <i className="bi bi-chevron-right" /> <b>{activeView === 'extractor' ? 'Extractor' : 'Run history'}</b></div><div className="top-actions"><span className="api-status"><span /> API connection</span><button className="icon-btn" title="Help"><i className="bi bi-question-circle" /></button></div></header>
       <div className="content-wrap">
-        {activeView === 'extractor' ? <>
-          <div className="page-heading"><div><div className="eyebrow">CONTACT RESEARCH</div><h1>Email extractor</h1><p>Find and organize contact details from material you’re authorized to use.</p></div><button className="btn btn-outline-secondary btn-sm" onClick={() => { setRawText(demoText); setSourceLabel('Example contacts'); setNotice('Example content loaded.'); }}><i className="bi bi-stars me-2" />Load example</button></div>
-          <div className="notice-bar"><i className="bi bi-info-circle-fill" /><span><b>Source-based extraction.</b> Mazzi processes pasted text and imported files. It does not crawl websites or rotate proxies.</span></div>
-          {notice && <div className={`toast-line ${notice.startsWith('Done') ? 'success' : ''}`}><i className={`bi ${busy ? 'bi-arrow-repeat spin' : notice.startsWith('Done') ? 'bi-check-circle-fill' : 'bi-info-circle'}`} />{notice}</div>}
+        <div className="page-heading"><div><div className="eyebrow">CONTACT RESEARCH</div><h1>Email extractor</h1><p>Find and organize contact details from material you’re authorized to use.</p></div><button className="btn btn-outline-secondary btn-sm" onClick={() => { setRawText(demoText); setSourceLabel('Example contacts'); setNotice('Example content loaded.'); }}><i className="bi bi-stars me-2" />Load example</button></div>
+        <div className="notice-bar"><i className="bi bi-info-circle-fill" /><span><b>Live web search &amp; extraction.</b> Mazzi searches DuckDuckGo, Bing, Google (API key), LinkedIn, and business directories, then visits websites to collect emails, phones, and business names.</span></div>
+        {notice && <div className={`toast-line ${notice.startsWith('Done') ? 'success' : ''}`}><i className={`bi ${busy ? 'bi-arrow-repeat spin' : notice.startsWith('Done') ? 'bi-check-circle-fill' : 'bi-info-circle'}`} />{notice}</div>}
 
-          <div className="workspace-grid">
-            <section className="panel source-panel">
+        <div className="mb-3">
+          <div className="d-flex gap-2">
+            <button className={`btn btn-outline-primary ${activeView === 'extractor' ? 'active' : ''}`} onClick={() => setActiveView('extractor')}>
+              <i className="bi bi-patch-question me-1"></i>Text Extractor
+            </button>
+            <button className={`btn btn-outline-primary ${activeView === 'live-search' ? 'active' : ''}`} onClick={() => setActiveView('live-search')}>
+              <i className="bi bi-search me-1"></i>Live Search
+            </button>
+            <button className={`btn btn-outline-primary ${activeView === 'workspace' ? 'active' : ''}`} onClick={() => setActiveView('workspace')}>
+              <i className="bi bi-clock-history me-1"></i>Workspace
+            </button>
+          </div>
+        </div>
+
+        {activeView === 'extractor' ? (
+          <>
+              <div className="workspace-grid">
+                <section className="panel source-panel">
               <div className="panel-heading"><div className="step-badge">01</div><div><h2>Source material</h2><p>Paste copied page text or import a text file.</p></div></div>
               <div className={`dropzone ${dragging ? 'dragging' : ''}`} onDragOver={event => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={event => { event.preventDefault(); setDragging(false); readFile(event.dataTransfer.files[0]); }} onClick={() => fileRef.current?.click()}>
                 <div className="upload-icon"><i className="bi bi-cloud-arrow-up" /></div><div className="drop-copy"><b>Drop a file here or <span>browse files</span></b><small>TXT, CSV, or LOG · up to 10 MB</small></div><input ref={fileRef} hidden type="file" accept=".txt,.csv,.log,text/plain,text/csv" onChange={event => readFile(event.target.files[0])} />
@@ -117,10 +133,15 @@ function App() {
           <section className="panel results-panel"><div className="results-header"><div className="panel-heading mb-0"><div className="step-badge">03</div><div><h2>Extracted contacts <span className="count-pill">{resultCount}</span></h2><p>Unique email addresses found in the provided source.</p></div></div><div className="results-actions"><input className="form-control result-search" placeholder="Filter these results…" value={resultQuery} onChange={event => setResultQuery(event.target.value)} disabled={!results.length}/><button className="btn btn-outline-secondary btn-sm" disabled={!results.length} onClick={downloadCsv}><i className="bi bi-download me-2" />Export CSV</button><button className="btn btn-outline-secondary btn-sm" disabled={!results.length} onClick={() => { setResults([]); setResultQuery(''); setNotice('Results cleared.'); }}><i className="bi bi-trash3 me-1"/>Clear</button></div></div>
             {results.length ? <div className="table-responsive"><table className="table results-table"><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Type</th><th>Provider</th><th>URL</th><th>Source</th></tr></thead><tbody>{visibleResults.map((row, index) => <tr key={`${row.email}-${index}`}><td>{row.name || <span className="text-muted">—</span>}</td><td>{row.phone || <span className="text-muted">—</span>}</td><td><a href={`mailto:${row.email}`}>{row.email}</a></td><td><span className="count-pill">{row.type}</span></td><td>{row.provider}</td><td>{row.url ? <a href={row.url} target="_blank" rel="noreferrer">{row.url}</a> : <span className="text-muted">—</span>}</td><td>{row.sourceLabel || 'Pasted text'}</td></tr>)}</tbody></table>{!visibleResults.length&&<div className="empty-search">No results match that filter.</div>}</div> : <div className="empty-state"><div className="empty-art"><i className="bi bi-inbox" /><span><i className="bi bi-at" /></span></div><b>No contacts yet</b><p>Add source material and start an extraction to see results here.</p></div>}
           </section>
-        </> : <>
+        </>
+      ) : activeView === 'live-search' ? (
+        <SearchWorkspace />
+      ) : (
+        <>
           <div className="page-heading"><div><div className="eyebrow">WORKSPACE</div><h1>Run history</h1><p>Recent extraction jobs and their result counts.</p></div><button className="btn btn-outline-secondary btn-sm" onClick={loadHistory}><i className="bi bi-arrow-clockwise me-2" />Refresh</button></div>
           <section className="panel history-panel">{history.length ? <div className="table-responsive"><table className="table results-table"><thead><tr><th>Source</th><th>Country</th><th>Language</th><th>Results</th><th>Created</th></tr></thead><tbody>{history.map(job => <tr key={job._id}><td><i className="bi bi-file-earmark-text me-2 text-primary" />{job.sourceLabel}</td><td>{job.country}</td><td>{job.language}</td><td><span className="count-pill">{job.count}</span></td><td>{new Date(job.createdAt).toLocaleString()}</td></tr>)}</tbody></table></div> : <div className="empty-state"><div className="empty-art"><i className="bi bi-clock-history" /></div><b>No saved runs yet</b><p>Completed extractions will appear here when MongoDB is connected.</p></div>}</section>
-        </>}
+        </>
+      )}
         <footer className="footer-note"><span>MAZZI EXTRACTOR <i>·</i> v1.0.0</span><span>Built for source-based contact research</span></footer>
       </div>
     </main>

@@ -7,7 +7,24 @@ const extractionSchema = new mongoose.Schema({
   language: { type: String, default: 'Any language' },
   keywords: { type: String, default: '' },
   count: { type: Number, default: 0 },
-  items: [{ name: String, phone: String, email: String, url: String, sourceLabel: String, country: String, language: String }]
+  items: [{
+    name: String,
+    phone: String,
+    email: String,
+    url: String,
+    sourceLabel: String,
+    country: String,
+    language: String,
+    type: { type: String, default: 'Personal-style mailbox (inferred)' },
+    provider: { type: String, default: '' },
+    source: { type: String, default: 'text' },
+    verified: { type: Boolean, default: false },
+    confidence: { type: String, default: 'low' },
+    domain: String
+  }],
+  status: { type: String, default: 'completed', enum: ['completed', 'stopped', 'error'] },
+  searchesCompleted: { type: Number, default: 0 },
+  websitesVisited: { type: Number, default: 0 }
 }, { timestamps: true });
 
 export default mongoose.model('Extraction', extractionSchema);
