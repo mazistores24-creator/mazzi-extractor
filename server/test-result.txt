@@ -1,0 +1,6 @@
+Testing MongoDB Atlas connection...
+SUCCESS: Connected to MongoDB Atlas!
+Host: ac-txyikls-shard-00-01.k2oeods.mongodb.net
+Database: mazzi-extractor
+Collections: user
+Disconnected successfully.

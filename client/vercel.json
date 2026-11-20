@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "routes": [
+    { "src": "/assets/.*", "headers": { "cache-control": "s-maxage=31536000, immutable" } },
+    { "src": "/.*", "dest": "/index.html" }
+  ],
+  "env": {
+    "VITE_API_URL": "@mazzi-api-url"
+  }
+}
